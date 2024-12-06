@@ -3,6 +3,9 @@ from time import time
 from typing import TypedDict
 from flask import Flask, Request, jsonify, request
 import mysql.connector
+from celery import Celery
+
+celery = Celery("main", broker="pyamqp://guest:guest@172.17.0.1//", backend="rpc://")
 
 app = Flask(__name__)
 
@@ -43,7 +46,6 @@ def create_user():
         return jsonify({"error": "Invalid or missing JSON payload"}), 400
     data: UserRequest = request.json
 
-    # Connect to the database
     connection = get_connection()
     cursor = connection.cursor()
     try:
@@ -70,6 +72,12 @@ class TaskRequest(TypedDict):
     title: str
     description: str
     user_id: str
+    due_date: str
+
+
+@celery.task
+def schedule_notification(task_title, user_id):
+    print(f"Task {task_title} for user {user_id}")
 
 
 @app.post("/create-task")
@@ -81,10 +89,17 @@ def create_task():
     connection = get_connection()
     cursor = connection.cursor()
     query = """
-        INSERT INTO Tasks (title, description, user_id)
-        VALUES (%s, %s, %s)
+        INSERT INTO Tasks (title, description, user_id, due_date)
+        VALUES (%s, %s, %s, %s)
     """
-    values = (data["title"], data["description"], data["user_id"])
+    values = (data["title"], data["description"], data["user_id"], data["due_date"])
+
+    due_date = datetime.datetime.strptime(data["due_date"], "%Y-%m-%d %H:%M:%S")
+    lead_time = datetime.timedelta(minutes=10)
+    notification_time = due_date - lead_time
+    schedule_notification.apply_async(
+        args=[data["title"], data["user_id"]], eta=notification_time
+    )
     cursor.execute(query, values)
     connection.commit()
     return jsonify({"message": "Task created successfully"}), 201
