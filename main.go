@@ -1,8 +1,8 @@
 package main
 
 import (
+	"context"
 	"database/sql"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -49,7 +49,7 @@ func main() {
 		for rows.Next() {
 			var user User
 			if error := rows.Scan(&user.Id, &user.Name, &user.Email, &user.CreatedAt, &user.Password); error != nil {
-				fmt.Println(error.Error())
+				c.JSON(http.StatusBadRequest, error.Error())
 			}
 			users = append(users, user)
 		}
@@ -67,11 +67,27 @@ func main() {
 		for rows.Next() {
 			var task Task
 			if error := rows.Scan(&task.Id, &task.Title, &task.Description, &task.UserId, &task.DueDate); error != nil {
-				fmt.Println(error.Error())
+				c.JSON(http.StatusBadRequest, error.Error())
 			}
 			tasks = append(tasks, task)
 		}
 		c.JSON(http.StatusOK, tasks)
+	})
+
+	engine.POST("/create-task", func(c *gin.Context) {
+		var task Task
+		if error := c.ShouldBindJSON(&task); error != nil {
+			c.JSON(http.StatusBadRequest, error.Error())
+		}
+		result, queryError := db.ExecContext(context.Background(), "INSERT INTO Tasks (title, description, due_date, user_id) VALUES (?, ?, ?, ?)", task.Title, task.Description, task.DueDate, task.UserId)
+		if queryError != nil {
+			panic(queryError.Error())
+		}
+		lastId, error := result.LastInsertId()
+		if error != nil {
+			panic(error.Error())
+		}
+		c.JSON(http.StatusOK, lastId)
 	})
 
 	engine.Run()
