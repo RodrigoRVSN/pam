@@ -11,11 +11,19 @@ import (
 )
 
 type User struct {
-	CreatedAt string `json:"created_at"`
 	Name      string `json:"name"`
+	CreatedAt string `json:"created_at"`
 	Email     string `json:"email"`
 	Password  string `json:"password"`
 	Id        int64  `json:"id"`
+}
+
+type Task struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	DueDate     string `json:"due_date"`
+	Id          int64  `json:"id"`
+	UserId      int64  `json:"user_id"`
 }
 
 // TODO: reimplement the python api in golang and remove python implementation
@@ -45,8 +53,25 @@ func main() {
 			}
 			users = append(users, user)
 		}
-		fmt.Println(users)
 		c.JSON(http.StatusOK, users)
+	})
+
+	engine.GET("/tasks", func(c *gin.Context) {
+		rows, queryError := db.Query("SELECT * FROM Tasks")
+		if queryError != nil {
+			panic(queryError.Error())
+		}
+
+		var tasks []Task
+
+		for rows.Next() {
+			var task Task
+			if error := rows.Scan(&task.Id, &task.Title, &task.Description, &task.UserId, &task.DueDate); error != nil {
+				fmt.Println(error.Error())
+			}
+			tasks = append(tasks, task)
+		}
+		c.JSON(http.StatusOK, tasks)
 	})
 
 	engine.Run()
