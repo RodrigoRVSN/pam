@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -25,8 +26,6 @@ type Task struct {
 	Id          int64  `json:"id"`
 	UserId      int64  `json:"user_id"`
 }
-
-// TODO: reimplement the python api in golang and remove python implementation
 
 func main() {
 	engine := gin.Default()
@@ -80,6 +79,24 @@ func main() {
 			c.JSON(http.StatusBadRequest, error.Error())
 		}
 		result, queryError := db.ExecContext(context.Background(), "INSERT INTO Tasks (title, description, due_date, user_id) VALUES (?, ?, ?, ?)", task.Title, task.Description, task.DueDate, task.UserId)
+		if queryError != nil {
+			panic(queryError.Error())
+		}
+		lastId, error := result.LastInsertId()
+		if error != nil {
+			panic(error.Error())
+		}
+		c.JSON(http.StatusOK, lastId)
+	})
+
+	// TODO: fix optional created_at field
+	engine.POST("/create-user", func(c *gin.Context) {
+		var user User
+		if error := c.ShouldBindJSON(&user); error != nil {
+			c.JSON(http.StatusBadRequest, error.Error())
+		}
+		fmt.Println(user)
+		result, queryError := db.ExecContext(context.Background(), "INSERT INTO Users (name, email, password, created_at) VALUES (?, ?, ?, ?)", user.Name, user.Email, user.Password, user.CreatedAt)
 		if queryError != nil {
 			panic(queryError.Error())
 		}
