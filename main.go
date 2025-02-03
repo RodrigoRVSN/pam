@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -89,14 +88,13 @@ func main() {
 		c.JSON(http.StatusOK, lastId)
 	})
 
-	// TODO: fix optional created_at field
 	engine.POST("/create-user", func(c *gin.Context) {
 		var user User
 		if error := c.ShouldBindJSON(&user); error != nil {
 			c.JSON(http.StatusBadRequest, error.Error())
 		}
-		fmt.Println(user)
-		result, queryError := db.ExecContext(context.Background(), "INSERT INTO Users (name, email, password, created_at) VALUES (?, ?, ?, ?)", user.Name, user.Email, user.Password, user.CreatedAt)
+		query := "INSERT INTO Users (name, email, password, created_at) VALUES (?, ?, ?, ?)"
+		result, queryError := db.ExecContext(context.Background(), query, user.Name, user.Email, user.Password, time.Now())
 		if queryError != nil {
 			panic(queryError.Error())
 		}
