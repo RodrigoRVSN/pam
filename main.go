@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"net/http"
+	userController "pam/controller/user"
+	"pam/infra/db"
+	userRepository "pam/repository"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -28,32 +30,11 @@ type Task struct {
 
 func main() {
 	engine := gin.Default()
-	db, error := sql.Open("mysql", "root:password@/task_management")
-	if error != nil {
-		panic(error)
-	}
-	db.SetConnMaxLifetime(time.Minute * 3)
-	db.SetMaxOpenConns(10)
-	db.SetMaxIdleConns(10)
+	db := db.InitializeDatabase()
+	userRepository := userRepository.NewUserRepository(db)
+	userController := userController.NewUserController(userRepository)
 
-	engine.GET("/users", func(c *gin.Context) {
-		rows, queryError := db.Query("SELECT * FROM Users")
-		if queryError != nil {
-			panic(queryError.Error())
-		}
-
-		var users []User
-
-		for rows.Next() {
-			var user User
-			if error := rows.Scan(&user.Id, &user.Name, &user.Email, &user.CreatedAt, &user.Password); error != nil {
-				c.JSON(http.StatusBadRequest, error.Error())
-			}
-			users = append(users, user)
-		}
-		c.JSON(http.StatusOK, users)
-	})
-
+	engine.GET("/users", userController.GetUsers)
 	engine.GET("/tasks", func(c *gin.Context) {
 		rows, queryError := db.Query("SELECT * FROM Tasks")
 		if queryError != nil {
