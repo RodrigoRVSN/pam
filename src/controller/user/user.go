@@ -1,18 +1,10 @@
 package userController
 
 import (
-	userRepository "pam/repository"
+	userRepository "pam/src/repository/user"
 
 	"github.com/gin-gonic/gin"
 )
-
-type User struct {
-	Name      string `json:"name"`
-	CreatedAt string `json:"created_at"`
-	Email     string `json:"email"`
-	Password  string `json:"password"`
-	Id        int64  `json:"id"`
-}
 
 type UserGateway interface {
 	GetUsers(ctx *gin.Context)
