@@ -8,6 +8,7 @@ import (
 
 type UserGateway interface {
 	GetUsers(ctx *gin.Context)
+	CreateUser(ctx *gin.Context)
 }
 
 type UserController struct {

@@ -11,6 +11,7 @@ type UserRepository struct {
 
 type UserGateway interface {
 	GetUsers() ([]entity.User, error)
+	CreateUser(user entity.User) (int64, error)
 }
 
 func NewUserRepository(db *sql.DB) UserGateway {
