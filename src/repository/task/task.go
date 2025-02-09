@@ -11,6 +11,7 @@ type TaskRepository struct {
 
 type TaskGateway interface {
 	GetTasks() ([]entity.Task, error)
+	CreateTask(task entity.Task) (int64, error)
 }
 
 func NewTaskRepository(db *sql.DB) TaskGateway {

@@ -25,22 +25,7 @@ func main() {
 
 	engine.GET("/users", userController.GetUsers)
 	engine.GET("/tasks", taskController.GetTasks)
-
-	engine.POST("/create-task", func(c *gin.Context) {
-		var task entity.Task
-		if error := c.ShouldBindJSON(&task); error != nil {
-			c.JSON(http.StatusBadRequest, error.Error())
-		}
-		result, queryError := db.ExecContext(context.Background(), "INSERT INTO Tasks (title, description, due_date, user_id) VALUES (?, ?, ?, ?)", task.Title, task.Description, task.DueDate, task.UserId)
-		if queryError != nil {
-			panic(queryError.Error())
-		}
-		lastId, error := result.LastInsertId()
-		if error != nil {
-			panic(error.Error())
-		}
-		c.JSON(http.StatusOK, lastId)
-	})
+	engine.POST("/create-task", taskController.CreateTask)
 
 	engine.POST("/create-user", func(c *gin.Context) {
 		var user entity.User

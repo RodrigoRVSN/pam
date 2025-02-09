@@ -8,6 +8,7 @@ import (
 
 type TaskGateway interface {
 	GetTasks(ctx *gin.Context)
+	CreateTask(ctx *gin.Context)
 }
 
 type TaskController struct {
