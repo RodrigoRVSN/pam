@@ -9,9 +9,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	error := godotenv.Load()
+	if error != nil {
+		panic(error.Error())
+	}
 	engine := gin.Default()
 	db := db.InitializeDatabase()
 
