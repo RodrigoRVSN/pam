@@ -4,6 +4,7 @@ import (
 	taskController "pam/src/controller/task"
 	userController "pam/src/controller/user"
 	"pam/src/infra/db"
+	"pam/src/repository/service/notificationService"
 	taskRepository "pam/src/repository/task"
 	userRepository "pam/src/repository/user"
 
@@ -23,8 +24,9 @@ func main() {
 	userRepository := userRepository.NewUserRepository(db)
 	userController := userController.NewUserController(userRepository)
 
+	notificationService := notificationService.NewNotificationService()
 	taskRepository := taskRepository.NewTaskRepository(db)
-	taskController := taskController.NewTaskController(taskRepository)
+	taskController := taskController.NewTaskController(taskRepository, notificationService)
 
 	engine.GET("/users", userController.GetUsers)
 	engine.POST("/create-user", userController.CreateUser)

@@ -1,6 +1,7 @@
 package taskController
 
 import (
+	"pam/src/repository/service/notificationService"
 	taskRepository "pam/src/repository/task"
 
 	"github.com/gin-gonic/gin"
@@ -12,9 +13,10 @@ type TaskGateway interface {
 }
 
 type TaskController struct {
-	taskRepository taskRepository.TaskGateway
+	taskRepository      taskRepository.TaskGateway
+	notificationService notificationService.NotificationGateway
 }
 
-func NewTaskController(taskRepository taskRepository.TaskGateway) TaskGateway {
-	return &TaskController{taskRepository: taskRepository}
+func NewTaskController(taskRepository taskRepository.TaskGateway, notificationService notificationService.NotificationGateway) TaskGateway {
+	return &TaskController{taskRepository: taskRepository, notificationService: notificationService}
 }
