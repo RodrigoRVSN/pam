@@ -13,26 +13,29 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge/types"
 )
 
-func (*NotificationService) CreateNotificationAsync(time time.Time, name string) error {
-	cfg, err := config.LoadDefaultConfig(context.TODO(),
+func createClient() (*eventbridge.Client, error) {
+	cfg, cfgError := config.LoadDefaultConfig(context.TODO(),
 		config.WithDefaultRegion("us-east-1"),
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(os.Getenv("AWS_ACCESS_KEY"), os.Getenv("AWS_ACCESS_SECRET"), "")))
-	if err != nil {
-		return err
+	if cfgError != nil {
+		return nil, cfgError
 	}
 	client := eventbridge.NewFromConfig(cfg)
-	cron := fmt.Sprintf("cron(%d %d %d %d ? %d)", time.Minute(), time.Hour(), time.Day(), time.Month(), time.Year())
+	return client, nil
+}
 
+func createRule(client *eventbridge.Client, name string, time time.Time) error {
+	cron := fmt.Sprintf("cron(%d %d %d %d ? %d)", time.Minute(), time.Hour(), time.Day(), time.Month(), time.Year())
 	_, ruleError := client.PutRule(
 		context.TODO(),
 		&eventbridge.PutRuleInput{
 			Name:               aws.String(name),
 			ScheduleExpression: aws.String(cron),
 		})
-	if ruleError != nil {
-		return ruleError
-	}
+	return ruleError
+}
 
+func createTarget(client *eventbridge.Client, name string) error {
 	_, targetError := client.PutTargets(context.TODO(), &eventbridge.PutTargetsInput{
 		Rule: aws.String(name),
 		Targets: []types.Target{
@@ -43,6 +46,18 @@ func (*NotificationService) CreateNotificationAsync(time time.Time, name string)
 			},
 		},
 	})
+	return targetError
+}
 
+func (*NotificationService) CreateNotificationAsync(time time.Time, name string) error {
+	client, cfgError := createClient()
+	if cfgError != nil {
+		return cfgError
+	}
+	ruleError := createRule(client, name, time)
+	if ruleError != nil {
+		return ruleError
+	}
+	targetError := createTarget(client, name)
 	return targetError
 }
