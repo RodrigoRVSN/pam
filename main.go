@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	taskController "pam/src/controller/task"
 	userController "pam/src/controller/user"
 	"pam/src/infra/db"
@@ -33,6 +34,9 @@ func main() {
 
 	engine.GET("/tasks", taskController.GetTasks)
 	engine.POST("/create-task", taskController.CreateTask)
+	engine.GET("/ping", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, gin.H{"message": "pong!"})
+	})
 
 	engine.Run()
 }

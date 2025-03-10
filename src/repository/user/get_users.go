@@ -5,7 +5,7 @@ import "pam/src/domain/entity"
 func (r *UserRepository) GetUsers() ([]entity.User, error) {
 	rows, queryError := r.DB.Query("SELECT * FROM Users")
 	if queryError != nil {
-		panic(queryError.Error())
+		return nil, queryError
 	}
 
 	var users []entity.User

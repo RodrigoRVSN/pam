@@ -6,7 +6,7 @@ import (
 )
 
 func InitializeDatabase() *sql.DB {
-	db, error := sql.Open("mysql", "root:password@/task_management")
+	db, error := sql.Open("mysql", "root:password@tcp(db:3306)/task_management")
 	if error != nil {
 		panic(error)
 	}

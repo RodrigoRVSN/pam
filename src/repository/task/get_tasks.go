@@ -7,7 +7,7 @@ import (
 func (r *TaskRepository) GetTasks() ([]entity.Task, error) {
 	rows, queryError := r.DB.Query("SELECT * FROM Tasks")
 	if queryError != nil {
-		panic(queryError.Error())
+		return nil, queryError
 	}
 
 	var tasks []entity.Task
