@@ -2,11 +2,12 @@ package db
 
 import (
 	"database/sql"
+	"os"
 	"time"
 )
 
 func InitializeDatabase() *sql.DB {
-	db, error := sql.Open("mysql", "root:password@tcp(db:3306)/task_management")
+	db, error := sql.Open("mysql", os.Getenv("DB_DSN_NAME"))
 	if error != nil {
 		panic(error)
 	}
