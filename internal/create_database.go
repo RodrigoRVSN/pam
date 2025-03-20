@@ -4,12 +4,18 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	db, err := sql.Open("mysql", "root:password@tcp(localhost:3306)/task_management")
+	error := godotenv.Load()
+	if error != nil {
+		panic(error.Error())
+	}
+	db, err := sql.Open("mysql", os.Getenv("DB_DSN_NAME"))
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
